@@ -1,16 +1,16 @@
 import os
 import sys
+import secrets  # <-- Use Python's built-in secrets module instead
 from django.conf import settings
 from django.core.management import execute_from_command_line
 from django.http import JsonResponse
 from django.urls import path
-from django.utils.crypto import get_random_secret_key
 from corsheaders.middleware import CorsMiddleware
 
 # Minimal Django Settings
 if not settings.configured:
     settings.configure(
-        SECRET_KEY=get_random_secret_key(),
+        SECRET_KEY=secrets.token_urlsafe(32), # <-- Generates a perfectly safe key automatically
         DEBUG=True,
         ALLOWED_HOSTS=['*'],
         ROOT_URLCONF=__name__,
@@ -18,7 +18,7 @@ if not settings.configured:
             'corsheaders.middleware.CorsMiddleware',
             'django.middleware.common.CommonMiddleware',
         ],
-        CORS_ALLOW_ALL_ORIGINS=True, # Allows our Node app to fetch data
+        CORS_ALLOW_ALL_ORIGINS=True, 
     )
 
 # Simple global variable to track visits
