@@ -45,7 +45,7 @@ jobs:
             fi
 
             # Enter project directory
-            cd Helix_Cloud_bootcamp/backend || exit 1
+            cd /home/ubuntu/Helix_Cloud_bootcamp/backend || exit 1
 
             echo "Pulling latest changes..."
             git pull origin main
