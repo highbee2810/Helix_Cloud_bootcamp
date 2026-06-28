@@ -5,15 +5,15 @@ on:
     branches: ["main"]
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout repo
-      - name: Checkout code
+      # Checkout (optional but good practice)
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Start SSH agent and add private key
+      # Setup SSH
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
@@ -25,21 +25,36 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      # Deploy to EC2
-      - name: Deploy application
+      # Deploy
+      - name: Deploy to EC2
         env:
           HOST: ${{ secrets.EC2_HOST }}
           USER: ${{ secrets.EC2_USER }}
+          REPO_URL: ${{ secrets.REPO_URL }}
         run: |
           ssh $USER@$HOST << 'EOF'
             echo "Connected to server"
 
-            cd /home/Helix_Cloud_bootcamp/backend || exit
+            # Go to home directory
+            cd ~ || exit 1
 
-            echo "Pulling latest code..."
+            # Clone repo if it doesn't exist
+            if [ ! -d "Helix_Cloud_bootcamp" ]; then
+              echo "Cloning repository..."
+              git clone $REPO_URL
+            fi
+
+            # Enter project directory
+            cd Helix_Cloud_bootcamp/backend || exit 1
+
+            echo "Pulling latest changes..."
             git pull origin main
 
-            echo "Activating virtual environment..."
+            echo "Setting up virtual environment..."
+            if [ ! -d "../venv" ]; then
+              python3 -m venv ../venv
+            fi
+
             source ../venv/bin/activate
 
             echo "Installing dependencies..."
@@ -49,7 +64,4 @@ jobs:
             python manage.py migrate --noinput
 
             echo "Collecting static files..."
-            python manage.py collectstatic --noinput
-
-            echo "Deployment successful!"
-          EOF
+            python
