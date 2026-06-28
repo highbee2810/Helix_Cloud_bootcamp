@@ -37,7 +37,7 @@ jobs:
           HOST: ${{ secrets.EC2_HOST }}
           USER: ${{ secrets.EC2_USER }}
         run: |
-          ssh $USER@$HOST "
+          ssh -i $EC2_SSH_KEY $USER@$HOST "
             # Navigate to your project directory on the server
             cd /home
             
