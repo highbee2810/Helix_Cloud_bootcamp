@@ -1,4 +1,5 @@
-name: Deploy Application
+```yaml
+name: Deploy Django App to EC2
 
 on:
   push:
@@ -9,17 +10,28 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    env:
+      HOST: ${{ secrets.EC2_HOST }}
+      USER: ${{ secrets.EC2_USER }}
+      REPO_URL: ${{ secrets.REPO_URL }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - name: Deploy Django Application to EC2
-        env:
-          HOST: ${{ secrets.EC2_HOST }}
-          USER: ${{ secrets.EC2_USER }}
-          REPO_URL: ${{ secrets.REPO_URL }}
-
+      - name: Configure SSH
         run: |
-          ssh -o StrictHostKeyChecking=no $USER@$HOST << EOF
+          mkdir -p ~/.ssh
+
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2.pem
+
+          chmod 600 ~/.ssh/ec2.pem
+
+          ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        run: |
+          ssh -i ~/.ssh/ec2.pem $USER@$HOST << 'EOF'
             set -e
 
             APP_NAME="Helix_Cloud_bootcamp"
@@ -27,28 +39,38 @@ jobs:
             BACKEND_DIR="$APP_DIR/backend"
             VENV_DIR="$APP_DIR/venv"
 
-            echo "Starting deployment..."
+            echo "🚀 Starting deployment..."
 
             sudo apt-get update -y
-            sudo apt-get install -y git python3 python3-pip python3-venv
+
+            sudo apt-get install -y \
+              git \
+              python3 \
+              python3-pip \
+              python3-venv
 
             if [ ! -d "$APP_DIR" ]; then
-              git clone $REPO_URL $APP_DIR
+              echo "Cloning repository..."
+              git clone "$REPO_URL" "$APP_DIR"
             fi
 
-            cd $BACKEND_DIR
+            cd "$BACKEND_DIR"
 
+            echo "Pulling latest changes..."
             git pull origin main
 
             if [ ! -d "$VENV_DIR" ]; then
-              python3 -m venv $VENV_DIR
+              python3 -m venv "$VENV_DIR"
             fi
 
-            source $VENV_DIR/bin/activate
+            source "$VENV_DIR/bin/activate"
 
             pip install --upgrade pip
             pip install -r requirements.txt
 
             python manage.py migrate --noinput
             python manage.py collectstatic --noinput
+
+            echo "✅ Deployment completed successfully."
           EOF
+```
