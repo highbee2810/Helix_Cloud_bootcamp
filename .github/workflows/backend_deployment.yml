@@ -41,7 +41,7 @@ jobs:
             # Clone repo if it doesn't exist
             if [ ! -d "Helix_Cloud_bootcamp" ]; then
               echo "Cloning repository..."
-              git clone $REPO_URL
+              git clone https://github.com/highbee2810/Helix_Cloud_bootcamp
             fi
 
             # Enter project directory
