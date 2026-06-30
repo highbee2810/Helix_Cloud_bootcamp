@@ -1,0 +1,7 @@
+name: deploy to frontend
+on: 
+  push:
+    branches: main
+      paths: 
+        - frontend
+      
