@@ -1,5 +1,4 @@
-
-name: Deploy Django App to EC2
+name: Deploy Django Backend to EC2
 
 on:
   push:
@@ -10,66 +9,43 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    env:
-      HOST: ${{ secrets.EC2_HOST }}
-      USER: ${{ secrets.EC2_USER }}
-      REPO_URL: ${{ secrets.REPO_URL }}
-
     steps:
+
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Configure SSH
-        run: |
-          mkdir -p ~/.ssh
+      - name: Copy Backend Files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "backend/*"
+          target: "/home/ubuntu/Helix_Cloud_bootcamp/backend"
 
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2.pem
+      - name: Deploy Application
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
 
-          chmod 600 ~/.ssh/ec2.pem
+            cd /home/ubuntu/Helix_Cloud_bootcamp/backend
 
-          ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
-
-      - name: Deploy to EC2
-        run: |
-          ssh -i ~/.ssh/ec2.pem $USER@$HOST << 'EOF'
-            set -e
-
-            APP_NAME="Helix_Cloud_bootcamp"
-            APP_DIR="$HOME/$APP_NAME"
-            BACKEND_DIR="$APP_DIR/backend"
-            VENV_DIR="$APP_DIR/venv"
-
-            echo "🚀 Starting deployment..."
-
-            sudo apt-get update -y
-
-            sudo apt-get install -y \
-              git \
-              python3 \
-              python3-pip \
-              python3-venv
-
-            if [ ! -d "$APP_DIR" ]; then
-              echo "Cloning repository..."
-              git clone "$REPO_URL" "$APP_DIR"
+            # Create virtual environment if it doesn't exist
+            if [ ! -d "venv" ]; then
+              python3 -m venv venv
             fi
 
-            cd "$BACKEND_DIR"
-
-            echo "Pulling latest changes..."
-            git pull origin main
-
-            if [ ! -d "$VENV_DIR" ]; then
-              python3 -m venv "$VENV_DIR"
-            fi
-
-            source "$VENV_DIR/bin/activate"
+            source venv/bin/activate
 
             pip install --upgrade pip
+
             pip install -r requirements.txt
 
-            python manage.py migrate --noinput
-            python3 main.py
+            python3 manage.py migrate --noinput
 
-            echo "✅ Deployment completed successfully."
-          EOF
+            python3 main.py 
+
+            
