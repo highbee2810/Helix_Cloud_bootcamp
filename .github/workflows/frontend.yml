@@ -56,10 +56,4 @@ jobs:
 
             npm install
 
-            echo "========== Restarting Frontend =========="
-
-            sudo systemctl restart helix-frontend
-
-            echo "========== Frontend Status =========="
-
-            sudo systemctl status helix-frontend --no-pager
+            npm start
