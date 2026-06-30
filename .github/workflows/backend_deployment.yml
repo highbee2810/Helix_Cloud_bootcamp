@@ -44,19 +44,18 @@ jobs:
 
             pip install -r requirements.txt
 
-            # Stop existing application if running
-            PID=$(pgrep -f "python3 main.py")
+            PID=$(lsof -ti:8000)
+
             if [ -n "$PID" ]; then
-                echo "Stopping process $PID"
                 kill "$PID"
-                sleep 3
+                sleep 2
             fi
+            
+            nohup python3 main.py > app.log 2>&1 &
 
             
 
-        
-             # Start new version
-             nohup python3 main.py > app.log 2>&1 &
+      
             
 
             
