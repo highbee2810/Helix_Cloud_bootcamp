@@ -56,4 +56,4 @@ jobs:
 
             npm install
 
-            npm start
+            nohup npm start > frontend.log 2>&1 &
