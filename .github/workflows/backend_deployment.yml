@@ -44,12 +44,6 @@ jobs:
 
             pip install -r requirements.txt
 
-            PID=$(lsof -ti:8000)
-
-            if [ -n "$PID" ]; then
-                kill "$PID"
-                sleep 2
-            fi
             
             nohup python3 main.py > app.log 2>&1 &
 
