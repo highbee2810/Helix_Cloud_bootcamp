@@ -44,6 +44,13 @@ jobs:
 
             pip install -r requirements.txt
 
-            python3 main.py 
+            # Stop existing application if running
+            pkill -f "python3 main.py" || true
+
+            # Wait a moment
+             sleep 2
+             # Start new version
+             nohup python3 main.py > app.log 2>&1 &
+            
 
             
