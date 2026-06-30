@@ -1,4 +1,4 @@
-```yaml
+
 name: Deploy Django App to EC2
 
 on:
@@ -69,8 +69,7 @@ jobs:
             pip install -r requirements.txt
 
             python manage.py migrate --noinput
-            python manage.py collectstatic --noinput
+            python3 main.py
 
             echo "✅ Deployment completed successfully."
           EOF
-```
