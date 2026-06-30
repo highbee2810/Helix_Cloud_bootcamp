@@ -45,10 +45,16 @@ jobs:
             pip install -r requirements.txt
 
             # Stop existing application if running
-            pkill -f "python3 main.py" || true
+            PID=$(pgrep -f "python3 main.py")
+            if [ -n "$PID" ]; then
+                echo "Stopping process $PID"
+                kill "$PID"
+                sleep 3
+            fi
 
-            # Wait a moment
-             sleep 2
+            
+
+        
              # Start new version
              nohup python3 main.py > app.log 2>&1 &
             
